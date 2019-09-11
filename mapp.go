@@ -81,7 +81,7 @@ func (c *Context)Run() {
 
 func NewContext(groups HandlersChain) *Context {
 	return &Context {
-		Groups : groups,
+		Groups : append(HandlersChain(nil), groups...),
 	}
 }
 
