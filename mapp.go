@@ -56,31 +56,39 @@ func (c *Context) Next() {
 	}
 }
 
-func (c *Context)Main(groups HandlersChain) {
+func (c *Context)run() {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Print("recv stack: ", err, string(debug.Stack()))
 		}
 	}()
 
-	c.index = 0
-	c.Groups = groups
-
 	c.Groups[0](c)
 }
 
-func (c *Context)Run(groups HandlersChain) {
-	for {
-		c.Main(groups)
+func (c *Context)Clone() *Context{
+	return &Context {
+		Groups : c.Groups,
+	}
+}
 
+func (c *Context)Run() {
+	for {
+		c.Clone().run()
 		time.Sleep(time.Second * 5)
+	}
+}
+
+func NewContext(groups HandlersChain) *Context {
+	return &Context {
+		Groups : groups,
 	}
 }
 
 func (engine *Engine)Run() {
 	for _, h := range engine.Handlers {
-		var c Context
-		go c.Run(append(engine.Groups, h))
+		c := NewContext(append(engine.Groups, h))
+		go c.Run()
 	}
 	select{}
 }
